@@ -24,9 +24,9 @@ HEADERS  += mathtest.h\
     mtnamespace.h
 
 debug {
-    DESTDIR = $$PWD/debug
+    DESTDIR = ../debug
 }
 
 release {
-    DESTDIR = $$PWD/release
+    DESTDIR = ../release
 }
