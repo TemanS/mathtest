@@ -245,7 +245,17 @@ void MathTest::onGo()
         iTotalRight = 0;
         iGradeLevel = pGradeLevel->buttonGroup->checkedId();
 
-        // Initialize the test matrix and the qDebugother global control
+        // Initialize the max/min values for the Left and Right operands
+        // for all arithmetic operators for the grade level checked in
+        // the grade level radio button group.
+        //
+        for(int i = 0; i < op_boundary; i++) {
+            opLimits[i].setRect(0, maxops[i].iaLop[iGradeLevel],
+                                0, maxops[i].iaRop[iGradeLevel]);
+            rnd.setMinMax(opLimits[i]);
+        }
+
+        // Initialize the test matrix and the other global control
         // parameters.
         //
         for(int i = 0; i < op_boundary; i++)
@@ -449,32 +459,24 @@ void MathTest::runTest()
     }
 
     QString opStr;
-    QRect limits;
     QPoint ops;
-    RandOp rnd;
 
     switch((int)testMatrix[testIndex].eOp)
     {
     case op_add:
-        limits.setRect(1, maxops[op_add].iaLop[iGradeLevel],
-                       1, maxops[op_add].iaRop[iGradeLevel]);
-        rnd.getPair(ops, limits);
+        rnd.getPair(ops);
         testMatrix[testIndex].iAnswer  = ops.x() + ops.y();
         opStr = " + ";
         break;
 
     case op_sub:
-        limits.setRect(1, maxops[op_sub].iaLop[iGradeLevel],
-                       1, maxops[op_sub].iaRop[iGradeLevel]);
-        rnd.getPair(ops, limits, true);
+        rnd.getPair(ops, true);
         testMatrix[testIndex].iAnswer = ops.x() - ops.y() ;
         opStr = " - ";
         break;
 
     case op_mul:
-        limits.setRect(1, maxops[op_mul].iaLop[iGradeLevel],
-                       1, maxops[op_mul].iaRop[iGradeLevel]);
-        rnd.getPair(ops, limits);
+        rnd.getPair(ops);
         testMatrix[testIndex].iAnswer = ops.x() * ops.y() ;
         opStr = " * ";
         break;

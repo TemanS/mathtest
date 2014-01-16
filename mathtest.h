@@ -33,6 +33,7 @@
 #include <QElapsedTimer>
 #include <QMessageBox>
 #include <qpgui.h>
+#include <mathpack.h>
 #include "mtnamespace.h"
 
 using namespace mt;
@@ -163,6 +164,9 @@ private:
     MAXOPS;
 
     MAXOPS maxops[op_boundary];
+    QRect  opLimits[op_boundary];
+    RandOp rnd;
+
 };
 
 #endif // MATHTEST_H
