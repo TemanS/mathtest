@@ -245,16 +245,6 @@ void MathTest::onGo()
         iTotalRight = 0;
         iGradeLevel = pGradeLevel->buttonGroup->checkedId();
 
-        // Initialize the max/min values for the Left and Right operands
-        // for all arithmetic operators for the grade level checked in
-        // the grade level radio button group.
-        //
-        for(int i = 0; i < op_boundary; i++) {
-            opLimits[i].setRect(0, maxops[i].iaLop[iGradeLevel],
-                                0, maxops[i].iaRop[iGradeLevel]);
-            rnd.setMinMax(opLimits[i]);
-        }
-
         // Initialize the test matrix and the other global control
         // parameters.
         //
@@ -307,6 +297,7 @@ void MathTest::onGo()
             setEditable(false);
             bRunning = true;
             testIndex = 0;
+            rnd.clear();
             runTest();
         }
     }
@@ -408,8 +399,51 @@ void MathTest::updateUserFile()
     *resultStream << qsLog;
 }
 
+void MathTest::doProblem()
+{
+    TESTPARM *pt = &testMatrix[testIndex];
+    QString opStr = mt::opStrings[testIndex];
+    QPoint ops;
+
+    if(pt->bFirst) {
+        pt->bFirst = false;
+        pt->opLimits.setRect(0, pt->maxops.iaLop[iGradeLevel],
+                             0, pt->maxops.iaRop[iGradeLevel]);
+        rnd.setMinMax(pt->opLimits);
+    }
+
+    switch((int)pt->eOp) {
+        case op_add:
+            rnd.getPair(ops);
+            pt->iAnswer = ops.x() + ops.y();
+            break;
+        case op_sub:
+            rnd.getPair(ops, true );
+            pt->iAnswer = ops.x() - ops.y();
+            break;
+        case op_mul:
+            rnd.getPair(ops);
+            pt->iAnswer = ops.x() * ops.y();
+            break;
+        case op_div:
+            ops.ry() = rnd.getOneUnique(1, pt->maxops.iaRop[iGradeLevel]);
+            ops.rx() = rnd.getOne(1, pt->maxops.iaLop[iGradeLevel])
+                     * ops.y();
+            pt->iAnswer = ops.x() / ops.y();
+            break;
+    }
+
+    printProb(ops, opStr);
+}
+
 void MathTest::runTest()
 {
+    // The testMatrix class member is an array of TESTPARM structures
+    // that contain the parameters for a given test, in his case, as
+    // associated with a given operator.
+    // The testIndex class member is an index into this array that
+    // corresponds to the operator (+-*/) associated with the test.
+    //
     TESTPARM *pt = &testMatrix[testIndex];
 
     // If the Start button was not pressed, then don't do anything.
@@ -436,7 +470,17 @@ void MathTest::runTest()
     if ((pt->bOn == false)
     ||  (pt->iPass >= pt->iCount)) {
 
+        /*************************************************************
+         ** NOTE: This is where we update the testIndex class member
+         ************************************************************/
+
         // See if there are any more tests to run.
+        // Note: Cannot use pt pointer, as it was initialized to the
+        // testIndex at the top of this function. As testIndex changes
+        // in the following loop, pt is not correspondingly updated,
+        // so we must use the updated testIndex for the rest of the
+        // function from here down. We could update pt after the
+        // while loop, too, but chose not to do so.
         //
         while(++testIndex < op_boundary && testMatrix[testIndex].bOn == false)
             ;
@@ -451,44 +495,19 @@ void MathTest::runTest()
                 resultStream->flush();
                 resultFile->close();
             }
+
             return;
-        }
-        else {
+
+        } else {
+
+            // Going on to the next test
+            //
             testMatrix[testIndex].iPass = 0;
+            rnd.clear();
         }
     }
 
-    QString opStr;
-    QPoint ops;
-
-    switch((int)testMatrix[testIndex].eOp)
-    {
-    case op_add:
-        rnd.getPair(ops);
-        testMatrix[testIndex].iAnswer  = ops.x() + ops.y();
-        opStr = " + ";
-        break;
-
-    case op_sub:
-        rnd.getPair(ops, true);
-        testMatrix[testIndex].iAnswer = ops.x() - ops.y() ;
-        opStr = " - ";
-        break;
-
-    case op_mul:
-        rnd.getPair(ops);
-        testMatrix[testIndex].iAnswer = ops.x() * ops.y() ;
-        opStr = " * ";
-        break;
-
-    case op_div:
-        ops.ry() = rnd.getOneUnique(1, maxops[op_div].iaRop[iGradeLevel]);
-        ops.rx() = rnd.getOne(1, maxops[op_div].iaLop[iGradeLevel]) * ops.y();
-        testMatrix[testIndex].iAnswer = ops.x() / ops.y();
-        opStr = " / ";
-        break;
-    }
-    printProb(ops, opStr);
+    doProblem();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -909,10 +928,11 @@ void MathTest::getMaxops()
     int j, k;
     for(j = 0; j < op_boundary; ++j) {
         for(k = 0; k < gl_boundary; ++k) {
+            TESTPARM *pt = &testMatrix[j];
             stream >> buff;
-            maxops[j].iaLop[k] = QString(buff).toInt();
+            pt->maxops.iaLop[k] = QString(buff).toInt();
             stream >> buff;
-            maxops[j].iaRop[k] = QString(buff).toInt();
+            pt->maxops.iaRop[k] = QString(buff).toInt();
         }
     }
     if(maxopsFile.exists())

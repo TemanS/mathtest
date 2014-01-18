@@ -97,6 +97,7 @@ private:
     void setDefaults(QTextStream& in);
     void getMaxops();
     int openDefaults(QpFile& file, QTextStream& stream, bool builtin=false);
+    void doProblem();
 
     ///////////////////////////////////////////////////////////
     // Data
@@ -128,13 +129,19 @@ private:
     int iPercentGrade;
     const char *szLetterGrade;
 
+    typedef struct _maxops {
+        int iaLop[gl_boundary];
+        int iaRop[gl_boundary];
+    }
+    MAXOPS;
+
     typedef struct {
         //
         // These members are initialized by pressing the "Start Tests" button.
         //
         bool bEmpty;            // No tests selected
         bool bOn;               // Test is ON or OFF ?
-        op_t eOp;               // operator
+        op_t eOp;               // operator index
         int iCount;             // how many?
         int iSeconds;           // how much time to do it?
         bool bFirst;            // First pass? true or false?
@@ -153,20 +160,12 @@ private:
         int iRight;
         int iScore;
         QString qsGrade;
+        QRect  opLimits;
+        MAXOPS maxops;
     } TESTPARM;
 
     TESTPARM testMatrix[op_boundary];
-
-    typedef struct _maxops {
-        int iaLop[gl_boundary];
-        int iaRop[gl_boundary];
-    }
-    MAXOPS;
-
-    MAXOPS maxops[op_boundary];
-    QRect  opLimits[op_boundary];
     RandOp rnd;
-
 };
 
 #endif // MATHTEST_H
