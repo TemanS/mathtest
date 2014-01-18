@@ -32,6 +32,17 @@ namespace mt
     enum op_t {op_add, op_sub, op_mul, op_div, op_boundary};
     enum gl_t {gl_1, gl_2, gl_3, gl_4, gl_boundary};
 
+    // These variables Must be declared as const static because
+    // they are declared outside a class.
+
+    // Array of operator strings for display purposes.
+    //
+    // The common *[] construct yields unused variable warnings.
+    // Must use [][] multidimensional array, and at least one
+    // dimension must be predetermined.
+    //
+    const static char opStrings[][op_boundary] = {" + ", " - ", " * ", " / "};
+
     ///////////////////////////////////////////////////////////
     // Window Size
     ///////////////////////////////////////////////////////////
